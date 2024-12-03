@@ -6,7 +6,7 @@ object Day03:
 	val path = os.pwd / ".." / "input" / "day03" / "input1.txt"
 	val lines = os.read.lines(path).toVector
 
-	val numberPattern: Regex = "mul+\\([0-9]+,[0-9]+\\)".r
+	val numberPattern: Regex = "mul\\([0-9]+,[0-9]+\\)".r
 
 	def performMul(s: String): Int =
 		s.drop(4).dropRight(1).split(",").map(_.toInt).reduce((acc, i) => acc * i)

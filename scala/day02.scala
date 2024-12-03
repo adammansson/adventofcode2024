@@ -1,7 +1,7 @@
 //> using toolkit 0.6.0
 
 object Day02:
-	val path = os.pwd / "input" / "day02" / "example1.txt"
+	val path = os.pwd / ".." / "input" / "day02" / "input1.txt"
 	val lines = os.read.lines(path).toVector
 	val reports =
 		lines

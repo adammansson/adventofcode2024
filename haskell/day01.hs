@@ -5,8 +5,8 @@ main :: IO ()
 main = do
         args <- getArgs
         content <- readFile (head args)
-        print $ partOne content
-        print $ partTwo content
+        print (partOne content)
+        print (partTwo content)
 
 extractEven :: [String] -> [Int]
 extractEven [] = []

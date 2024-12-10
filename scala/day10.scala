@@ -1,62 +1,79 @@
 //> using toolkit 0.6.0
 
-import scala.collection.mutable
+import scala.collection.immutable
+
+case class Pos(x: Int, y: Int):
+    def +(dir: Dir): Pos =
+        Pos(x + dir.dx, y + dir.dy)
+
+case class Dir(dx: Int, dy: Int)
+
+object Dir:
+    def up: Dir = Dir(0, -1)
+    def down: Dir = Dir(0, 1)
+    def left: Dir = Dir(-1, 0)
+    def right: Dir = Dir(1, 0)
+    def orthogonal: Vector[Dir] = Vector(up, down, left, right)
+
+class Matrix[T](val data: Vector[Vector[T]]):
+    def apply(pos: Pos): T =
+        data(pos.y)(pos.x)
+
+    override def toString(): String =
+        data.map(_.mkString).mkString("\n")
 
 object Day10:
-    val path = os.pwd / ".." / "input" / "day10" / "input1.txt"
-    val input = os.read.lines(path).map(_.toVector.map(_.toInt - '0')).toVector
-    val trailheads =
-        input
+    val path = os.pwd / ".." / "input" / "day10" / "example2.txt"
+    var input = os.read.lines(path).map(_.toVector.map(_.toInt - '0')).toVector
+    input = Vector.fill(input.head.length)(-1) +: input :+ Vector.fill(input.head.length)(-1)
+    input = input.map(row => -1 +: row :+ -1)
+
+    val map: Matrix[Int] = Matrix(input)
+    val trailheads: Vector[Pos] =
+        map
+        .data
         .zipWithIndex
         .filter((row, _) => row.contains(0))
         .flatMap((row, y) =>
             row
             .zipWithIndex
             .filter((n, _) => n == 0)
-            .map((_, x) => (x, y))
+            .map((_, x) => Pos(x, y))
         )
 
-    def trailheadScore(map: Vector[Vector[Int]], reached: mutable.Set[(Int, Int)], x: Int, y: Int): Int =
-        var counter = 0
+    def trailheadScore(trailhead: Pos): Int =
+        var queue = immutable.Queue[Pos](trailhead)
+        var found = immutable.Set[Pos]()
 
-        for tpl <- Seq((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)) do
-            val nx = tpl._1
-            val ny = tpl._2
+        while queue.nonEmpty do
+            val (pos, newQueue) = queue.dequeue
+            queue = newQueue
 
-            if map.indices.contains(ny) && map.head.indices.contains(nx) then
-                if map(ny)(nx) == map(y)(x) + 1 then
-                    if map(ny)(nx) == 9 && !reached.contains((nx, ny)) then
-                        counter += 1
-                        reached.add((nx, ny))
+            for dir <- Dir.orthogonal do
+                if map(pos + dir) == map(pos) + 1 then
+                    if map(pos + dir) == 9 then
+                        found = found.incl(pos + dir)
                     else
-                        counter += trailheadScore(map, reached, nx, ny)
-        counter
+                        queue = queue.enqueue(pos + dir)
 
-    def trailheadRating(map: Vector[Vector[Int]], x: Int, y: Int): Int =
-        var counter = 0
+        found.size
 
-        for tpl <- Seq((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)) do
-            val nx = tpl._1
-            val ny = tpl._2
-
-            if map.indices.contains(ny) && map.head.indices.contains(nx) then
-                if map(ny)(nx) == map(y)(x) + 1 then
-                    if map(ny)(nx) == 9 then
-                        counter += 1
-                    else
-                        counter += trailheadRating(map, nx, ny)
-        counter
+    def trailheadRating(pos: Pos, rating: Int): Int =
+        Dir
+        .orthogonal
+        .filter(dir => map(pos + dir) == map(pos) + 1)
+        .map(dir => if map(pos + dir) == 9 then 1 else trailheadRating(pos + dir, rating))
+        .sum + rating
 
     def partOne(): Int =
-        trailheads.map(th => 
-            val reached = mutable.Set[(Int, Int)]()
-            trailheadScore(input, reached, th._1, th._2)
-        ).sum
+        trailheads
+        .map(trailhead => trailheadScore(trailhead))
+        .sum
 
     def partTwo(): Int =
-        trailheads.map(th => 
-            trailheadRating(input, th._1, th._2)
-        ).sum
+        trailheads
+        .map(trailhead => trailheadRating(trailhead, 0))
+        .sum
 
     @main def run(): Unit =
         println(partOne())

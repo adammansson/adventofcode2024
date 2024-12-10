@@ -23,7 +23,7 @@ class Matrix[T](val data: Vector[Vector[T]]):
         data.map(_.mkString).mkString("\n")
 
 object Day10:
-    val path = os.pwd / ".." / "input" / "day10" / "example2.txt"
+    val path = os.pwd / ".." / "input" / "day10" / "input1.txt"
     var input = os.read.lines(path).map(_.toVector.map(_.toInt - '0')).toVector
     input = Vector.fill(input.head.length)(-1) +: input :+ Vector.fill(input.head.length)(-1)
     input = input.map(row => -1 +: row :+ -1)
@@ -41,34 +41,26 @@ object Day10:
             .map((_, x) => Pos(x, y))
         )
 
-    def trailheadScore(trailhead: Pos): Int =
-        var queue = immutable.Queue[Pos](trailhead)
-        var found = immutable.Set[Pos]()
-
-        while queue.nonEmpty do
-            val (pos, newQueue) = queue.dequeue
-            queue = newQueue
-
-            for dir <- Dir.orthogonal do
-                if map(pos + dir) == map(pos) + 1 then
-                    if map(pos + dir) == 9 then
-                        found = found.incl(pos + dir)
-                    else
-                        queue = queue.enqueue(pos + dir)
-
-        found.size
+    def trailheadScore(pos: Pos, found: Set[Pos]): Set[Pos] =
+        found.concat(
+            Dir
+            .orthogonal
+            .filter(dir => map(pos + dir) == map(pos) + 1)
+            .flatMap(dir => if map(pos + dir) == 9 then Set(pos + dir) else trailheadScore(pos + dir, found))
+        )
 
     def trailheadRating(pos: Pos, rating: Int): Int =
-        Dir
-        .orthogonal
-        .filter(dir => map(pos + dir) == map(pos) + 1)
-        .map(dir => if map(pos + dir) == 9 then 1 else trailheadRating(pos + dir, rating))
-        .sum + rating
+        rating + 
+            Dir
+            .orthogonal
+            .filter(dir => map(pos + dir) == map(pos) + 1)
+            .map(dir => if map(pos + dir) == 9 then 1 else trailheadRating(pos + dir, rating))
+            .sum
 
     def partOne(): Int =
         trailheads
-        .map(trailhead => trailheadScore(trailhead))
-        .sum
+        .flatMap(trailhead => trailheadScore(trailhead, Set()))
+        .size
 
     def partTwo(): Int =
         trailheads

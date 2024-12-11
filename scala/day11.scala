@@ -11,10 +11,8 @@ object Day11:
         val nbrDigits = digits.length
 
         if nbrDigits % 2 == 0 then
-            Vector(
-                digits.take(nbrDigits / 2).toLong,
-                digits.drop(nbrDigits / 2).toLong
-                )
+            Vector(digits.take(nbrDigits / 2).toLong,
+                   digits.drop(nbrDigits / 2).toLong)
         else if nbr == 0 then
             Vector(1L)
         else
@@ -27,8 +25,7 @@ object Day11:
         val current = mutable.Map[Long, Long]()
         val seen = mutable.Map[Long, Vector[Long]]()
 
-        for nbr <- input do
-            current += nbr -> 1
+        current.addAll(input.map(_ -> 1))
 
         for i <- 0 until 75 do
             val next = mutable.Map[Long, Long]()
@@ -38,8 +35,8 @@ object Day11:
                     seen(nbr) = replacements(nbr)
 
                 seen(nbr)
-                .foreach(otherNbr =>
-                    next(otherNbr) = next.getOrElse(otherNbr, 0L) + count
+                .foreach(replacement =>
+                    next(replacement) = next.getOrElse(replacement, 0L) + count
                 )
 
             current.clear()
@@ -47,6 +44,29 @@ object Day11:
 
         current.values.sum
 
+    def withReplacements(current: Map[Long, Long], replacements: Vector[Long], count: Long): Map[Long, Long] =
+        replacements
+        .foldLeft(current)((acc, replacement) => acc + (replacement -> (acc.getOrElse(replacement, 0L) + count)))
+
+    def partTwoRecursive(blinks: Int, state: (Map[Long, Long], Map[Long, Vector[Long]])): Long =
+        blinks match
+            case 0 =>
+                state._1.values.sum
+            case _ =>
+                partTwoRecursive(
+                    blinks - 1,
+                    state._1.foldLeft(Map.empty[Long, Long], state._2)((acc, entry) =>
+                        acc._2.get(entry._1) match
+                            case Some(replacements) =>
+                                 (withReplacements(acc._1, replacements, entry._2),
+                                  acc._2)
+                            case None => 
+                                (withReplacements(acc._1, replacements(entry._1), entry._2),
+                                 acc._2 + (entry._1 -> replacements(entry._1)))
+                    )
+                )
+
     @main def run(): Unit =
         println(partOne())
         println(partTwo())
+        println(partTwoRecursive(75, (input.map(_ -> 1L).toMap, Map.empty)))

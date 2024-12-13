@@ -46,12 +46,19 @@ object Day13:
 
         var minTokens = 0L
         for group <- updatedGroups do
-            val xPrize = group._3._1
-            val yPrize = group._3._2
             val xA = group._1._1
             val yA = group._1._2
             val xB = group._2._1
             val yB = group._2._2
+            val xPrize = group._3._1
+            val yPrize = group._3._2
+
+            // a = number of A presses
+            // b = number of B presses
+            // xA * a + xB * b = xPrize
+            // yA * a + yB * b = yPrize
+            // find integer solutions to the intersection between these two lines
+            // there is only one intersection, because of the degree
 
             val numerator = (xPrize / xB.toDouble - yPrize / yB.toDouble)
             val denominator = (xA / xB.toDouble - yA / yB.toDouble)

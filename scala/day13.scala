@@ -7,17 +7,17 @@ object Day13:
     val buttonPattern = raw"Button [AB]: X\+(\d+), Y\+(\d+)".r
     val prizePattern = raw"Prize: X=(\d+), Y=(\d+)".r
     val groups: Vector[((Int, Int), (Int, Int), (Int, Int))] = 
-            input.map(group =>
-                    val buttonA = buttonPattern.findFirstMatchIn(group(0)).get
-                    val buttonB = buttonPattern.findFirstMatchIn(group(1)).get
-                    val prize = prizePattern.findFirstMatchIn(group(2)).get
-                    (
-                            (buttonA.group(1).toInt, buttonA.group(2).toInt),
-                            (buttonB.group(1).toInt, buttonB.group(2).toInt),
-                            (prize.group(1).toInt, prize.group(2).toInt)
+        input.map(group =>
+            val buttonA = buttonPattern.findFirstMatchIn(group(0)).get
+            val buttonB = buttonPattern.findFirstMatchIn(group(1)).get
+            val prize = prizePattern.findFirstMatchIn(group(2)).get
+            (
+                (buttonA.group(1).toInt, buttonA.group(2).toInt),
+                (buttonB.group(1).toInt, buttonB.group(2).toInt),
+                (prize.group(1).toInt, prize.group(2).toInt)
 
-                    )
             )
+        )
         
     def partOne(): Int =
         var globalMinTokens = 0
@@ -38,14 +38,11 @@ object Day13:
         globalMinTokens
 
     def isWhole(d: Double): Boolean = 
-        (d - d.round).abs < 1e-2 // ????? weird
+        (d - d.round).abs < math.pow(2, -7) // ????? weird, wrong answer for 2^-6
 
     def partTwo(): Long =
-        val updatedGroups: Vector[((Int, Int), (Int, Int), (Long, Long))] =
-            groups.map(t => (t._1, t._2, (t._3._1 + 10000000000000L, t._3._2 + 10000000000000L)))
-
-        var minTokens = 0L
-        for group <- updatedGroups do
+        groups.map(t => (t._1, t._2, (t._3._1 + 10000000000000L, t._3._2 + 10000000000000L)))
+        .foldLeft(0L)((acc, group) => 
             val xA = group._1._1
             val yA = group._1._2
             val xB = group._2._1
@@ -57,18 +54,15 @@ object Day13:
             // b = number of B presses
             // xA * a + xB * b = xPrize
             // yA * a + yB * b = yPrize
-            // find integer solutions to the intersection between these two lines
-            // there is only one intersection, because of the degree
+            // find the integer solution to the intersection between these two lines
+            // there is only one solution, because of the degree
 
             val numerator = (xPrize / xB.toDouble - yPrize / yB.toDouble)
             val denominator = (xA / xB.toDouble - yA / yB.toDouble)
             val a = numerator / denominator
-            if isWhole(a) then
-                val b = (xPrize - xA * a) / xB.toDouble
-                if isWhole(b) then
-                    minTokens += 3 * a.round + b.round
-
-        minTokens
+            val b = (xPrize - xA * a) / xB.toDouble
+            acc + (if isWhole(a) && isWhole(b) then (3 * a.round + b.round) else 0)
+        )
 
     @main def run(): Unit =
         println(partOne())

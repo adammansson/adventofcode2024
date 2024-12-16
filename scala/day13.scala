@@ -20,7 +20,7 @@ object Day13:
                   prize.group(1).toLong,
                   prize.group(2).toLong)
         )
-        
+
     def partOne(): Int =
         var totalMinTokens = 0
         for group <- groups do

@@ -12,15 +12,12 @@ object Day25:
         .map(_.split("\n").toVector)
         .toVector
 
-    val locks: Vector[Vector[Int]] =
-        schematics
-        .filter(schematic => schematic.head.forall(_ == '#'))
-        .map(schematic => schematic.drop(1).dropRight(1).transpose.map(col => col.count(_ == '#')))
+    def countFilled(schematic: Vector[String]): Vector[Int] =
+        schematic.drop(1).dropRight(1).transpose.map(col => col.count(_ == '#'))
 
-    val keys: Vector[Vector[Int]] =
-        schematics
-        .filter(schematic => schematic.head.forall(_ == '.'))
-        .map(schematic => schematic.drop(1).dropRight(1).transpose.map(col => col.count(_ == '#')))
+    val (locks: Vector[Vector[Int]], keys: Vector[Vector[Int]]) =
+        schematics.partition(_.head.forall(_ == '#')) match
+            case (locks, keys) => (locks.map(countFilled), keys.map(countFilled))
 
     def partOne(): Int =
         locks.foldLeft(0)((acc, lock) => 

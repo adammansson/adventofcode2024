@@ -7,10 +7,7 @@ object Day25:
     val input: String = os.read(path)
 
     val schematics: Vector[Vector[String]] =
-        input
-        .split("\n\n")
-        .map(_.split("\n").toVector)
-        .toVector
+        input.split("\n\n").map(_.split("\n").toVector).toVector
 
     def countFilled(schematic: Vector[String]): Vector[Int] =
         schematic.drop(1).dropRight(1).transpose.map(col => col.count(_ == '#'))
